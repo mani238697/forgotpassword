@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
 import java.util.Optional;
@@ -80,6 +81,12 @@ public class UserController {
     }
     @Autowired
     private ResetPasswordService resetPasswordService;
+    @GetMapping("/resetpassword")
+    public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+        model.addAttribute("token", token);
+        return "resetpassword";
+    }
+
 
     @PostMapping("/resetpassword")
     public String resetPassword(@RequestParam("token") String token,
@@ -103,6 +110,11 @@ public class UserController {
     public String showForgotPasswordForm(Model model) {
         return "forgotpassword"; // Assuming "forgot-password.html" is the name of your forgot password page
     }
+    @GetMapping("/forgotpasswordsuccess")
+    public String showForgotPasswordSuccessPage() {
+        return "forgotpasswordsuccess";
+    }
+
 
 
     @PostMapping("/forgotpassword")
@@ -117,9 +129,14 @@ public class UserController {
             return "redirect:/forgotpassword?error=emailNotFound";
         }
 
+        // Construct the reset password URL using ServletUriComponentsBuilder
+        String resetPasswordUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/resetpassword")
+                .queryParam("token", resetToken)
+                .toUriString();
+
         // Send an email with the reset password link
-        String resetLink = "http://yourwebsite.com/resetpassword?token=" + resetToken;
-        String emailContent = "Please click the following link to reset your password: " + resetLink;
+        String emailContent = "Please click the following link to reset your password: " + resetPasswordUrl;
         emailService.sendEmail(email, "Password Reset", emailContent);
 
         return "redirect:/forgotpasswordsuccess"; // Redirect to a success page

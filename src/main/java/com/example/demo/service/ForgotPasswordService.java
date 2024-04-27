@@ -1,11 +1,14 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.service.EmailService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 
 @Service
 public class ForgotPasswordService {
@@ -27,8 +30,15 @@ public class ForgotPasswordService {
             user.setResetToken(token);
             userRepository.save(user);
 
-            // Send an email to the user with the password reset link including the token
-            String resetLink = "http://yourwebsite.com/reset-password?token=" + token;
+            // Construct the reset password URL using ServletUriComponentsBuilder
+            String resetPasswordUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/resetpassword")
+                    .toUriString();
+
+            // Append the token to the URL
+            String resetLink = resetPasswordUrl + "?token=" + token;
+
+            // Send an email to the user with the password reset link
             String emailContent = "Please click the following link to reset your password: " + resetLink;
             emailService.sendEmail(email, "Password Reset", emailContent);
         } else {
